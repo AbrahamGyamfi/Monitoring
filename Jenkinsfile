@@ -218,23 +218,25 @@ pipeline {
                 script {
                     echo '📤 Pushing images to AWS ECR...'
                     
-                    // Login to ECR using AWS CLI (credentials already configured)
-                    sh """
-                        aws ecr get-login-password --region ${AWS_REGION} | \
-                        docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                    """
-                    
-                    // Push backend images
-                    sh """
-                        docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${BACKEND_IMAGE}:latest
-                    """
-                    
-                    // Push frontend images
-                    sh """
-                        docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${FRONTEND_IMAGE}:latest
-                    """
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDENTIALS_ID}"]]){
+                        // Login to ECR
+                        sh """
+                            aws ecr get-login-password --region ${AWS_REGION} | \
+                            docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        """
+                        
+                        // Push backend images
+                        sh """
+                            docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
+                            docker push ${BACKEND_IMAGE}:latest
+                        """
+                        
+                        // Push frontend images
+                        sh """
+                            docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
+                            docker push ${FRONTEND_IMAGE}:latest
+                        """
+                    }
                     
                     echo "✅ Images pushed successfully to ECR!"
                     echo "Backend: ${BACKEND_IMAGE}:${IMAGE_TAG}"
