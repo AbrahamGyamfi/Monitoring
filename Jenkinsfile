@@ -2,9 +2,10 @@ pipeline {
     agent any
     
     environment {
-        // AWS Configuration (from Terraform outputs)
-        AWS_REGION = sh(script: 'cd terraform && terraform output -raw aws_region 2>/dev/null || echo "eu-west-1"', returnStdout: true).trim()
-        AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+        // AWS Configuration (from Jenkins credentials)
+        AWS_REGION = credentials('aws-region')
+        AWS_ACCOUNT_ID = credentials('aws-account-id')
+        APP_SERVER_IP = credentials('app-server-ip')
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         AWS_CREDENTIALS_ID = 'aws-credentials'
         
@@ -13,9 +14,9 @@ pipeline {
         FRONTEND_IMAGE = "${ECR_REGISTRY}/taskflow-frontend"
         IMAGE_TAG = "${BUILD_NUMBER}"
         
-        // EC2 Deployment Server (from Terraform outputs)
+        // EC2 Deployment Server
         EC2_CREDENTIALS_ID = 'app-server-ssh'
-        EC2_HOST = sh(script: 'cd terraform && terraform output -raw app_public_ip', returnStdout: true).trim()
+        EC2_HOST = "${APP_SERVER_IP}"
         EC2_USER = 'ec2-user'
         
         // Application
@@ -244,76 +245,80 @@ pipeline {
         
         stage('Deploy to EC2') {
             steps {
-                script {
-                    echo '🚀 Deploying to EC2...'
-                    
-                    // Create deployment directory
-                    sh """
-                        ssh -i /var/lib/jenkins/.ssh/taskflow-key.pem -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                            mkdir -p ~/taskflow
-                        '
-                    """
-                    
-                    // Copy docker-compose file
-                    sh """
-                        scp -i /var/lib/jenkins/.ssh/taskflow-key.pem -o StrictHostKeyChecking=no \
-                            docker-compose.prod.yml \
-                            ${EC2_USER}@${EC2_HOST}:~/taskflow/docker-compose.yml
-                    """
-                    
-                    // Deploy application
-                    sh """
-                        ssh -i /var/lib/jenkins/.ssh/taskflow-key.pem -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                            cd ~/taskflow
-                            
-                            # Login to ECR
-                            aws ecr get-login-password --region ${AWS_REGION} | \
-                            docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                            
-                            # Pull latest images
-                            docker pull ${BACKEND_IMAGE}:${IMAGE_TAG}
-                            docker pull ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                            
-                            # Stop existing containers
-                            docker-compose down || true
-                            
-                            # Start new containers
-                            IMAGE_TAG=${IMAGE_TAG} docker-compose up -d
-                            
-                            # Wait for services to be healthy
-                            sleep 10
-                            
-                            # Check container status
-                            docker-compose ps
-                            
-                            # Verify application is running
-                            curl -f http://localhost/health || exit 1
-                            
-                            echo "✅ Deployment successful!"
-                        '
-                    """
+                sshagent(credentials: ["${EC2_CREDENTIALS_ID}"]) {
+                    script {
+                        echo '🚀 Deploying to EC2...'
+                        
+                        // Create deployment directory
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                                mkdir -p ~/taskflow
+                            '
+                        """
+                        
+                        // Copy docker-compose file
+                        sh """
+                            scp -o StrictHostKeyChecking=no \
+                                docker-compose.prod.yml \
+                                ${EC2_USER}@${EC2_HOST}:~/taskflow/docker-compose.yml
+                        """
+                        
+                        // Deploy application
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                                cd ~/taskflow
+                                
+                                # Login to ECR
+                                aws ecr get-login-password --region ${AWS_REGION} | \
+                                docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                                
+                                # Pull latest images
+                                docker pull ${BACKEND_IMAGE}:${IMAGE_TAG}
+                                docker pull ${FRONTEND_IMAGE}:${IMAGE_TAG}
+                                
+                                # Stop existing containers
+                                docker-compose down || true
+                                
+                                # Start new containers
+                                REGISTRY_URL=${ECR_REGISTRY} IMAGE_TAG=${IMAGE_TAG} docker-compose up -d
+                                
+                                # Wait for services to be healthy
+                                sleep 10
+                                
+                                # Check container status
+                                docker-compose ps
+                                
+                                # Verify application is running
+                                curl -f http://localhost:5000/health || exit 1
+                                
+                                echo "✅ Deployment successful!"
+                            '
+                        """
+                    }
                 }
             }
         }
         
         stage('Health Check') {
             steps {
-                script {
-                    echo '🏥 Running health checks...'
-                    
-                    def healthStatus = sh(
-                        script: """
-                            ssh -i /var/lib/jenkins/.ssh/taskflow-key.pem -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                                curl -s http://localhost/health | grep healthy
-                            '
-                        """,
-                        returnStatus: true
-                    )
-                    
-                    if (healthStatus == 0) {
-                        echo "✅ Application is healthy!"
-                    } else {
-                        error "❌ Health check failed!"
+                sshagent(credentials: ["${EC2_CREDENTIALS_ID}"]) {
+                    script {
+                        echo '🏥 Running health checks...'
+                        
+                        def healthStatus = sh(
+                            script: """
+                                ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                                    curl -s http://localhost:5000/health | grep -i healthy
+                                '
+                            """,
+                            returnStatus: true
+                        )
+                        
+                        if (healthStatus == 0) {
+                            echo "✅ Application is healthy!"
+                        } else {
+                            error "❌ Health check failed!"
+                        }
                     }
                 }
             }
