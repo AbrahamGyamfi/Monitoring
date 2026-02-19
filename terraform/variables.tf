@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "jenkins_instance_type" {
   description = "Instance type for Jenkins server"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.medium"
 }
 
 variable "app_instance_type" {

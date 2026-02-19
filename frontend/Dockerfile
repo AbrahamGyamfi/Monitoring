@@ -1,7 +1,6 @@
-# Frontend Dockerfile
+# Frontend Dockerfile - Optimized
 FROM node:18-alpine AS build
 
-# Build arguments
 ARG BUILD_DATE
 ARG VCS_REF
 ARG BUILD_NUMBER
@@ -11,8 +10,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies with cache
+RUN npm ci --no-audit --no-fund
 
 # Copy source code
 COPY public/ ./public/

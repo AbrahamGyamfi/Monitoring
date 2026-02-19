@@ -1,40 +1,28 @@
-# Backend Dockerfile
+# Backend Dockerfile - Optimized
 FROM node:18-alpine
 
-# Build arguments for metadata
 ARG BUILD_DATE
 ARG VCS_REF
 ARG BUILD_NUMBER
 
-# Labels for image metadata
 LABEL maintainer="Abraham Gyamfi <abraham.gyamfi@dev.com>"
-LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.version="${BUILD_NUMBER}"
-LABEL org.opencontainers.image.title="TaskFlow Backend API"
-LABEL org.opencontainers.image.description="Express.js backend for TaskFlow application"
 
-# Create app directory
 WORKDIR /app
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
+# Install wget and create user in one layer
+RUN apk add --no-cache wget && \
+    addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install dependencies with cache mount
+RUN npm ci --production --no-audit --no-fund
 
-# Copy backend source
-COPY server.js ./
+# Copy backend source and set ownership
+COPY --chown=nodejs:nodejs server.js ./
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /app
-
-# Switch to non-root user
 USER nodejs
 
 # Expose port

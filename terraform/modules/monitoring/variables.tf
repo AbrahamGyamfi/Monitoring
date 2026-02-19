@@ -6,7 +6,7 @@ variable "ami_id" {
 variable "instance_type" {
   description = "Instance type for monitoring server"
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "key_name" {

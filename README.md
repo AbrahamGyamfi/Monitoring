@@ -1,385 +1,339 @@
-# TaskFlow - Task Management Web Application
+# TaskFlow - Task Management with Complete Observability & Security Stack
 
+[![Terraform](https://img.shields.io/badge/IaC-Terraform-purple)](https://www.terraform.io/)
 [![Jenkins](https://img.shields.io/badge/CI%2FCD-Jenkins-red)](https://jenkins.io/)
 [![Docker](https://img.shields.io/badge/Container-Docker-blue)](https://www.docker.com/)
-[![AWS](https://img.shields.io/badge/Deploy-AWS%20EC2-orange)](https://aws.amazon.com/ec2/)
+[![AWS](https://img.shields.io/badge/Cloud-AWS-orange)](https://aws.amazon.com/)
+[![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus-orange)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Visualization-Grafana-yellow)](https://grafana.com/)
 
-A lightweight, intuitive task management web application built following Agile principles and DevOps practices.
+A production-ready task management application with complete observability, monitoring, and security implementation using modern DevOps practices.
 
 ## Project Overview
 
-TaskFlow is a full-stack task management application developed as part of an Agile Development project. The application demonstrates:
+TaskFlow demonstrates enterprise-grade DevOps practices including:
 
-- **Agile Methodology**: Iterative development across multiple sprints
-- **DevOps Practices**: Complete Jenkins CI/CD pipeline with Docker & EC2 deployment
-- **Modern Web Stack**: React frontend with Node.js/Express backend
-- **Test-Driven Development**: High code coverage with automated tests
-- **Containerization**: Docker multi-stage builds for production deployment
+- **Infrastructure as Code**: Modular Terraform for AWS provisioning
+- **CI/CD Pipeline**: Jenkins with containerized testing and ECR deployment
+- **Observability Stack**: Prometheus + Grafana + CloudWatch monitoring
+- **Security**: CloudTrail audit logging + GuardDuty threat detection
+- **Containerization**: Multi-stage Docker builds with health checks
+- **Metrics Exposure**: Prometheus-format metrics at `/metrics` endpoint
 
-## Features
+## Architecture
 
-### Sprint 1 Features (Completed)
-- **US-001**: Create tasks with title and description
-- **US-002**: View all tasks in a organized list
-- **US-003**: Mark tasks as complete/incomplete
-
-### Sprint 2 Features (Completed)
-- **US-004**: Delete tasks with confirmation
-- **US-005**: Edit existing task details
-- **US-006**: Filter tasks by status (All/Active/Completed)
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Jenkins Server │     │   App Server     │     │ Monitoring      │
+│  - CI/CD        │────▶│  - TaskFlow App  │◀────│  - Prometheus   │
+│  - Pipeline     │     │  - Node Exporter │     │  - Grafana      │
+└─────────────────┘     └──────────────────┘     │  - Alerts       │
+                               │                  └─────────────────┘
+                               ▼
+                        ┌─────────────────┐
+                        │  AWS Services   │
+                        │  - CloudWatch   │
+                        │  - CloudTrail   │
+                        │  - GuardDuty    │
+                        │  - ECR          │
+                        └─────────────────┘
+```
 
 ## Technology Stack
 
-### Frontend
-- React 18
-- CSS3 (with CSS Modules)
-- Fetch API for HTTP requests
+### Application
+- **Frontend**: React 18, CSS3
+- **Backend**: Node.js, Express.js
+- **Testing**: Jest, Supertest, React Testing Library
 
-### Backend
-- Node.js
-- Express.js
-- UUID for unique identifiers
-- CORS for cross-origin requests
+### Infrastructure & DevOps
+- **IaC**: Terraform (modular architecture)
+- **CI/CD**: Jenkins with declarative pipeline
+- **Containers**: Docker, Docker Compose
+- **Cloud**: AWS (EC2, ECR, S3, IAM)
 
-### DevOps & Testing
-- Jest for unit and integration testing
-- Supertest for API testing
-- **Jenkins** for complete CI/CD pipeline
-- **Docker** for containerization
-- **AWS EC2** for production deployment
-- ESLint for code quality
+### Observability & Security
+- **Metrics**: Prometheus, Node Exporter
+- **Visualization**: Grafana
+- **Logging**: CloudWatch Logs
+- **Audit**: CloudTrail
+- **Threat Detection**: GuardDuty
+- **Alerts**: Prometheus Alertmanager
 
-## Installation & Setup
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Git
-- Docker (for containerized deployment)
-- Jenkins (for CI/CD pipeline)
+- Terraform >= 1.0
+- AWS CLI configured
+- SSH key pair (`~/.ssh/id_rsa.pub`)
+- Docker & Docker Compose
 
-### Installation Steps
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/AbrahamGyamfi/Jenkins-project.git
-   cd Jenkins-project
-   ```
-
-2. **Install backend dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Install frontend dependencies**
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
-
-4. **Run tests**
-   ```bash
-   npm test
-   ```
-
-5. **Start the backend server**
-   ```bash
-   npm start
-   # Server runs on http://localhost:5000
-   ```
-
-6. **Start the frontend (in a new terminal)**
-   ```bash
-   cd frontend
-   npm start
-   # Frontend runs on http://localhost:3000
-   ```
-
-7. **Access the application**
-   Open your browser and navigate to `http://localhost:3000`
-
-## Testing
-
-### Run all tests
+### Deploy Infrastructure
 ```bash
-npm test
+cd terraform
+terraform init
+terraform apply
 ```
 
-### Run tests with coverage
+### Verify Deployment
 ```bash
-npm test -- --coverage
+./deploy-and-verify.sh
 ```
 
-### Test Coverage Goals
-- Minimum 80% code coverage across all metrics
-- All tests must pass before merging to main branch
+### Access Services
+- **App**: http://APP_IP
+- **Grafana**: http://MONITORING_IP:3000 (admin/admin)
+- **Prometheus**: http://MONITORING_IP:9090
+- **Jenkins**: http://JENKINS_IP:8080
 
-## CI/CD Pipeline (Jenkins)
+## Terraform Infrastructure
 
-The project implements a complete end-to-end Jenkins CI/CD pipeline that builds, tests, containerizes, and deploys the application to AWS EC2.
+### Modular Structure
+```
+terraform/
+├── main.tf                    # Root module
+├── variables.tf               # Input variables
+├── outputs.tf                 # Output values
+└── modules/
+    ├── networking/            # Security groups, SSH keys
+    ├── compute/               # EC2 instances
+    ├── deployment/            # App deployment provisioner
+    ├── monitoring/            # Prometheus + Grafana
+    └── security/              # CloudTrail, GuardDuty, IAM
+```
 
-### Live Infrastructure
-- **Jenkins Server**: http://3.254.103.42:8080 (EC2 t3.medium, Jenkins 2.541.1)
-- **Production App**: http://54.170.165.207 (EC2 t3.micro)
-- **AWS Region**: eu-west-1 (Ireland)
-- **Registry**: AWS ECR (697863031884.dkr.ecr.eu-west-1.amazonaws.com)
+### Resources Provisioned
+- 3 EC2 instances (Jenkins, App, Monitoring)
+- Security group with required ports
+- IAM roles for CloudWatch
+- S3 bucket for CloudTrail logs (encrypted, 90-day lifecycle)
+- CloudWatch log groups
+- Imported existing CloudTrail and GuardDuty
 
-### Pipeline Stages
-1. **Checkout**: Clone repository from GitHub
-2. **Build Docker Images**: Build backend and frontend containers in parallel
-3. **Run Unit Tests**: Execute backend (Jest+Supertest) and frontend (React Testing Library) tests in Docker containers
-4. **Code Quality**: Run ESLint and verify Docker images
-5. **Integration Tests**: Test live API endpoints with containerized backend
-6. **Push to ECR**: Upload images to AWS ECR with build number tags
-7. **Deploy to EC2**: SSH deployment to production server with docker-compose
-8. **Health Check**: Verify application is running and responsive
-9. **Cleanup**: Remove old Docker images and containers
+## Observability Stack
 
-### Key Features
-- Containerized test execution (tests run inside Docker, not on Jenkins host)
-- Parallel build and test stages for faster execution (~2-3 minutes)
-- Health checks before and after deployment
-- AWS ECR integration for secure image storage
-- Separate backend and frontend Docker images
-- Image versioning with build numbers and latest tags
-- Automated cleanup to prevent disk space issues
+### Metrics Exposed
+The backend exposes Prometheus metrics at `/metrics`:
+- `http_requests_total` - Total HTTP requests
+- `http_errors_total` - Total HTTP errors
+- `http_request_duration_ms` - Average latency
+- `http_error_rate_percent` - Error rate percentage
+- `tasks_total` - Total tasks count
 
-### Test Execution
-All tests run inside Docker containers to ensure consistency:
+### Prometheus Scrape Targets
+- **taskflow-backend**: `APP_IP:5000/metrics`
+- **node-exporter**: `APP_IP:9100/metrics`
+- **prometheus**: `localhost:9090`
 
-**Backend Tests** (16 tests):
+### Alerts Configured
+1. **HighErrorRate**: Triggers when error rate > 5% for 2 minutes
+2. **HighLatency**: Triggers when latency > 1000ms for 5 minutes
+3. **ServiceDown**: Triggers when backend unreachable for 1 minute
+
+### Grafana Dashboards
+Create dashboards with these queries:
+```promql
+# Request Rate
+rate(http_requests_total[5m])
+
+# Error Rate
+http_error_rate_percent
+
+# Latency
+http_request_duration_ms
+
+# System Metrics (from Node Exporter)
+node_cpu_seconds_total
+node_memory_MemAvailable_bytes
+```
+
+## Security Implementation
+
+### CloudWatch Logs
+- Docker containers stream logs to CloudWatch
+- Log Group: `/aws/taskflow/docker`
+- Retention: 7 days
+
+### CloudTrail
+- Tracks all AWS API calls
+- S3 Bucket: `taskflow-cloudtrail-logs`
+- Encryption: AES256
+- Lifecycle: 90 days retention
+- Multi-region trail enabled
+
+### GuardDuty
+- Threat detection enabled
+- Monitors for suspicious activity
+- Findings available in AWS Console
+
+## CI/CD Pipeline
+
+### Jenkins Pipeline Stages
+1. **Checkout** - Clone from GitHub
+2. **Build** - Docker images (parallel)
+3. **Test** - Unit tests in containers
+4. **Quality** - ESLint + image verification
+5. **Integration** - API endpoint tests
+6. **Push** - Upload to ECR
+7. **Deploy** - SSH to EC2 with docker-compose
+8. **Health Check** - Verify deployment
+
+### Containerized Testing
+All tests run inside Docker containers:
 ```bash
+# Backend (16 tests)
 docker run --rm -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install && npm test'
-```
-- Health check endpoint
-- GET/POST/PATCH/PUT/DELETE /api/tasks
-- Validation tests (required fields, length limits)
-- Error handling (404, 400 responses)
 
-**Frontend Tests** (8 tests):
-```bash
+# Frontend (8 tests)
 docker run --rm -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install --legacy-peer-deps && CI=true npm test'
 ```
-- Component rendering
-- Form submission and user interactions
-- Task filtering (All/Active/Completed)
-- API integration and error handling
 
-### CI/CD Evidence
-See [CI_CD_EVIDENCE.md](CI_CD_EVIDENCE.md) for:
-- Complete Build #18 logs and analysis
-- Test execution details and results
-- Docker build output
-- Deployment verification
-- Troubleshooting history
+## API Endpoints
 
-## Docker Deployment
+### Application
+- `POST /api/tasks` - Create task
+- `GET /api/tasks` - List tasks
+- `PATCH /api/tasks/:id` - Update status
+- `PUT /api/tasks/:id` - Edit task
+- `DELETE /api/tasks/:id` - Delete task
 
-### Separate Backend and Frontend Images
+### Monitoring
+- `GET /health` - Health check
+- `GET /metrics` - Prometheus metrics
 
-**Backend Image** (Node.js + Express):
+## Verification
+
+### Test Metrics Endpoint
 ```bash
-cd backend
-docker build -t taskflow-backend .
-# Image size: 202MB (node:18-alpine base)
+curl http://APP_IP:5000/metrics
 ```
 
-**Frontend Image** (React + Nginx):
+### Test Alerts
 ```bash
-cd frontend
-docker build -t taskflow-frontend .
-# Image size: 93.3MB (multi-stage: node build → nginx serve)
+# Generate errors to trigger alert
+for i in {1..100}; do curl http://APP_IP:5000/api/invalid; done
 ```
 
-### Run Containers Locally
+### Check CloudWatch Logs
 ```bash
-# Backend
-docker run -d -p 5000:5000 --name taskflow-backend taskflow-backend
-
-# Frontend
-docker run -d -p 80:80 --name taskflow-frontend taskflow-frontend
+aws logs tail /aws/taskflow/docker --follow
 ```
 
-### Using Docker Compose
+### Check CloudTrail
 ```bash
-# Development
-docker-compose up -d
-
-# Production (on EC2)
-docker-compose -f docker-compose.prod.yml up -d
+aws cloudtrail lookup-events --max-results 10
 ```
 
-### Production Deployment (EC2)
-Images are pulled from AWS ECR:
+### Check GuardDuty
 ```bash
-# Login to ECR
-aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 697863031884.dkr.ecr.eu-west-1.amazonaws.com
-
-# Pull latest images
-docker pull 697863031884.dkr.ecr.eu-west-1.amazonaws.com/taskflow-backend:latest
-docker pull 697863031884.dkr.ecr.eu-west-1.amazonaws.com/taskflow-frontend:latest
-
-# Deploy with docker-compose
-docker-compose -f docker-compose.prod.yml up -d
+aws guardduty list-detectors
+aws guardduty list-findings --detector-id DETECTOR_ID
 ```
 
-### Health Checks
+## Cleanup
+
 ```bash
-# Local
-curl http://localhost:5000/health
-curl http://localhost/health
-
-# Production
-curl http://54.170.165.207/health
-```
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-02-16T10:30:00.000Z",
-  "tasksCount": 0
-}
+./cleanup.sh
+# OR
+cd terraform && terraform destroy
 ```
 
 ## Project Structure
 
 ```
-Agile_development/
-├── backend/
-│   ├── server.js              # Express server and API routes
-│   ├── server.test.js         # Backend unit tests (16 tests: CRUD + validation)
-│   ├── Dockerfile             # Backend container (node:18-alpine)
-│   └── package.json           # Backend dependencies
-├── frontend/
-│   ├── public/
-│   │   └── index.html         # HTML template
+monitoring/
+├── terraform/                 # Infrastructure as Code
+│   ├── modules/              # Modular Terraform
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── backend/                   # Node.js API
+│   ├── server.js
+│   ├── server-metrics.js     # With Prometheus metrics
+│   └── Dockerfile
+├── frontend/                  # React UI
 │   ├── src/
-│   │   ├── components/        # React components
-│   │   │   ├── TaskForm.js
-│   │   │   ├── TaskList.js
-│   │   │   ├── TaskItem.js
-│   │   │   └── TaskFilter.js
-│   │   ├── App.js             # Main application component
-│   │   ├── App.test.js        # Frontend tests (8 tests: rendering + interactions)
-│   │   ├── setupTests.js      # Jest configuration for React Testing Library
-│   │   ├── App.css            # Global styles
-│   │   └── index.js           # React entry point
-│   ├── Dockerfile             # Frontend container (multi-stage: build + nginx)
-│   ├── nginx.conf             # Nginx configuration (SPA routing + API proxy)
-│   └── package.json           # Frontend dependencies
-├── Jenkinsfile                # Jenkins pipeline (8 stages, containerized tests)
-├── docker-compose.yml         # Docker compose for development
-├── docker-compose.prod.yml    # Docker compose for production (ECR images)
-├── provision-ec2.sh           # AWS EC2 provisioning script
-├── JENKINS_SETUP.md           # Complete Jenkins setup guide
-├── CI_CD_EVIDENCE.md          # Build #18 logs, test results, deployment evidence
-├── AWS_PROVISIONING.md        # AWS infrastructure documentation
-├── docs/                      # Documentation directory
-│   ├── SPRINT_0_PLANNING.md   # Sprint 0 planning documents
-│   ├── SPRINT_1_REVIEW.md     # Sprint 1 review and retrospective
-│   └── SPRINT_2_REVIEW.md     # Sprint 2 review and retrospective
-└── README.md                  # This file
+│   └── Dockerfile
+├── monitoring/                # Observability stack
+│   ├── config/
+│   │   ├── prometheus.yml
+│   │   ├── alert_rules.yml
+│   │   └── grafana-datasource.yml
+│   └── docker-compose.yml
+├── userdata/                  # EC2 initialization scripts
+│   ├── jenkins-userdata.sh
+│   ├── app-userdata.sh
+│   └── monitoring-userdata.sh
+├── Jenkinsfile               # CI/CD pipeline
+├── docker-compose.prod.yml   # Production deployment
+└── README.md
 ```
 
-## Agile Process
+## Cost Estimate
 
-### Sprint Structure
-- **Sprint 0**: Planning and setup
-- **Sprint 1**: Core features + CI/CD setup
-- **Sprint 2**: Additional features + monitoring
-
-### Sprint Documents
-- [Sprint 0 Planning](docs/SPRINT_0_PLANNING.md)
-- [Sprint 1 Review & Retrospective](docs/SPRINT_1_REVIEW.md)
-- [Sprint 2 Review & Retrospective](docs/SPRINT_2_REVIEW.md)
-
-### Definition of Done
-1. Code complete and reviewed
-2. All tests passing with >80% coverage
-3. CI pipeline green
-4. Feature works per acceptance criteria
-5. Code follows quality standards
-6. Documentation updated
-7. No critical bugs
-
-## API Endpoints
-
-### Tasks
-- `POST /api/tasks` - Create a new task
-- `GET /api/tasks` - Get all tasks
-- `PATCH /api/tasks/:id` - Update task status
-- `PUT /api/tasks/:id` - Edit task details
-- `DELETE /api/tasks/:id` - Delete a task
-
-### Monitoring
-- `GET /health` - Health check endpoint
-
-## Development Guidelines
-
-### Branching Strategy
-- `main` - Production-ready code
-- `develop` - Integration branch
-- `feature/*` - Feature branches
-- `bugfix/*` - Bug fix branches
-
-### Commit Message Format
-```
-<type>: <subject>
-
-<body>
-
-Example:
-feat: Add task filtering by status (US-006)
-
-Implemented filter component with All, Active, and Completed tabs
-```
-
-### Commit Types
-- `feat`: New feature
-- `fix`: Bug fix
-- `test`: Adding or updating tests
-- `docs`: Documentation changes
-- `refactor`: Code refactoring
-- `style`: Code style changes
-- `chore`: Build or auxiliary tool changes
+Monthly AWS costs (approximate):
+- EC2 t3.micro (App): ~$7
+- EC2 t3.micro (Jenkins): ~$7
+- EC2 t3.small (Monitoring): ~$15
+- CloudWatch Logs: ~$2
+- CloudTrail: ~$2
+- GuardDuty: ~$5
+- S3 Storage: ~$1
+- **Total**: ~$39/month
 
 ## Learning Outcomes
 
 This project demonstrates:
-1. Application of Agile principles (user stories, sprints, retrospectives)
-2. DevOps practices (CI/CD, automated testing, monitoring)
-3. Iterative development with incremental delivery
-4. Test-driven development approach
-5. Git workflow with meaningful commit history
-6. Code quality and documentation standards
+1. Infrastructure as Code with Terraform modules
+2. Complete observability stack implementation
+3. Security best practices (CloudTrail, GuardDuty, encryption)
+4. Prometheus metrics exposure and scraping
+5. Grafana dashboard creation
+6. Alert configuration and management
+7. CloudWatch integration
+8. CI/CD with containerized testing
+9. Multi-tier application deployment
+10. AWS service integration
 
-## Contributing
+## Default Credentials
 
-This is an individual project for academic assessment. Contributions are not accepted.
+- **Grafana**: admin/admin (change on first login)
+- **Jenkins**: Get initial password via SSH:
+  ```bash
+  ssh -i ~/.ssh/id_rsa ec2-user@JENKINS_IP
+  sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+  ```
+
+## Troubleshooting
+
+### Prometheus Not Scraping
+```bash
+# Check connectivity from monitoring server
+ssh -i ~/.ssh/id_rsa ec2-user@MONITORING_IP
+curl http://APP_IP:5000/metrics
+```
+
+### App Not Running
+```bash
+# Check containers on app server
+ssh -i ~/.ssh/id_rsa ec2-user@APP_IP
+docker ps
+docker logs taskflow-backend-prod
+```
+
+### CloudWatch Logs Missing
+```bash
+# Verify IAM role attached
+aws ec2 describe-instances --instance-ids INSTANCE_ID \
+  --query 'Reservations[0].Instances[0].IamInstanceProfile'
+```
 
 ## License
 
-MIT License - This is an educational project.
-
-## Support
-
-For issues or questions, please refer to the project documentation or contact the project maintainer.
+MIT License - Educational project
 
 ---
 
-## Quick Links
-
-- **GitHub Repository**: https://github.com/AbrahamGyamfi/Jenkins-project.git
-- **Jenkins Dashboard**: http://3.254.103.42:8080/job/TaskFlow-Pipeline/
-- **Live Application**: http://54.170.165.207
-- **API Health Check**: http://54.170.165.207/health
-- **AWS ECR**: 697863031884.dkr.ecr.eu-west-1.amazonaws.com
-
----
-
-**Project Date**: February 2026  
-**Version**: 1.0.0  
-**Status**: Completed  
-**Total Commits**: 82+ commits across 12 branches  
-**Pipeline Builds**: 18+ successful automated builds
+**Author**: Abraham Gyamfi  
+**Date**: February 2026  
+**Version**: 2.0.0 (with Observability & Security)
