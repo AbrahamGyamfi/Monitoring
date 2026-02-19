@@ -2,9 +2,9 @@ pipeline {
     agent any
     
     environment {
-        // AWS ECR Configuration
-        AWS_REGION = 'eu-west-1'
-        AWS_ACCOUNT_ID = '697863031884'
+        // AWS Configuration (from Terraform outputs)
+        AWS_REGION = sh(script: 'cd terraform && terraform output -raw aws_region 2>/dev/null || echo "eu-west-1"', returnStdout: true).trim()
+        AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         AWS_CREDENTIALS_ID = 'aws-credentials'
         
@@ -13,9 +13,9 @@ pipeline {
         FRONTEND_IMAGE = "${ECR_REGISTRY}/taskflow-frontend"
         IMAGE_TAG = "${BUILD_NUMBER}"
         
-        // EC2 Deployment Server
-        EC2_CREDENTIALS_ID = 'ec2-ssh-key'
-        EC2_HOST = '54.170.165.207'
+        // EC2 Deployment Server (from Terraform outputs)
+        EC2_CREDENTIALS_ID = 'app-server-ssh'
+        EC2_HOST = sh(script: 'cd terraform && terraform output -raw app_public_ip', returnStdout: true).trim()
         EC2_USER = 'ec2-user'
         
         // Application

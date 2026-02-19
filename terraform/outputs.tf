@@ -67,3 +67,8 @@ output "guardduty_detector_id" {
   description = "GuardDuty detector ID"
   value       = module.security.guardduty_detector_id
 }
+
+output "aws_region" {
+  description = "AWS region"
+  value       = var.aws_region
+}
