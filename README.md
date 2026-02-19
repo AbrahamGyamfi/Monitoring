@@ -142,17 +142,17 @@ terraform/
 
 ### Live Metrics Dashboard
 
-![Grafana Dashboard](screenshots/grafana-dashboard-application.png)
+![Grafana Dashboard](./screenshots/grafana-dashboard-application.png)
 *Real-time application metrics: Request rate, error rate, latency, and task count*
 
 ### Infrastructure Monitoring
 
-![Infrastructure Dashboard](screenshots/grafana-dashboard-infrastructure.png)
+![Infrastructure Dashboard](./screenshots/grafana-dashboard-infrastructure.png)
 *System metrics: CPU, memory, disk I/O, and network utilization*
 
 ### Metrics Exposed
 
-![Metrics Endpoint](screenshots/metrics-endpoint.png)
+![Metrics Endpoint](./screenshots/metrics-endpoint.png)
 *Prometheus-format metrics exposed at `/metrics` endpoint*
 
 The backend exposes the following metrics:
@@ -167,7 +167,7 @@ The backend exposes the following metrics:
 
 ### Prometheus Scrape Targets
 
-![Prometheus Targets](screenshots/prometheus-targets.png)
+![Prometheus Targets](./screenshots/prometheus-targets.png)
 *All scrape targets showing healthy status*
 
 | Target | Endpoint | Status | Scrape Interval |
@@ -178,7 +178,7 @@ The backend exposes the following metrics:
 
 ### Alerts Configured
 
-![Alert Rules](screenshots/prometheus-alerts.png)
+![Alert Rules](./screenshots/prometheus-alerts.png)
 *Configured alert rules in Prometheus*
 
 | Alert | Condition | Duration | Severity |
@@ -208,7 +208,7 @@ node_memory_MemAvailable_bytes
 
 ### CloudWatch Logs
 
-![CloudWatch Logs](screenshots/cloudwatch-logs.png)
+![CloudWatch Logs](./screenshots/cloudwatch-logs.png)
 *Docker container logs streaming to CloudWatch*
 
 - **Log Group**: `/aws/taskflow/docker`
@@ -218,7 +218,7 @@ node_memory_MemAvailable_bytes
 
 ### CloudTrail
 
-![CloudTrail Events](screenshots/cloudtrail-events.png)
+![CloudTrail Events](./screenshots/cloudtrail-events.png)
 *AWS API audit trail showing recent events*
 
 - **Trail Name**: `taskflow-trail`
@@ -230,7 +230,7 @@ node_memory_MemAvailable_bytes
 
 ### GuardDuty
 
-![GuardDuty Dashboard](screenshots/guardduty-dashboard.png)
+![GuardDuty Dashboard](./screenshots/guardduty-dashboard.png)
 *GuardDuty threat detection enabled*
 
 - **Detector ID**: `8eccab93586c4b21dc5166f92a396f54`
@@ -240,7 +240,7 @@ node_memory_MemAvailable_bytes
 
 ## CI/CD Pipeline
 
-![Jenkins Pipeline](screenshots/jenkins-pipeline.png)
+![Jenkins Pipeline](./screenshots/jenkins-pipeline.png)
 *Jenkins CI/CD pipeline with 8 automated stages*
 
 ### Jenkins Pipeline Stages
@@ -277,7 +277,7 @@ docker run --rm -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install --legac
 
 ### Application Screenshots
 
-![TaskFlow Application](screenshots/application-ui.png)
+![TaskFlow Application](./screenshots/application-ui.png)
 *TaskFlow task management interface*
 
 ## API Endpoints
