@@ -21,7 +21,7 @@ COPY package*.json ./
 RUN npm install --production
 
 # Copy backend source and set ownership
-COPY --chown=nodejs:nodejs server.js ./
+COPY --chown=nodejs:nodejs server-metrics.js ./server.js
 
 USER nodejs
 
