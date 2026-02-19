@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "title": "TaskFlow Monitoring",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "Requests/sec"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "http_error_rate_percent",
+            "legendFormat": "Error %"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "http_request_duration_ms",
+            "legendFormat": "Latency (ms)"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Total Tasks",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "tasks_total"
+          }
+        ]
+      }
+    ]
+  }
+}

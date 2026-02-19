@@ -1,0 +1,42 @@
+{
+  "name": "taskflow",
+  "version": "1.0.0",
+  "description": "A lightweight task management web application",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "client": "cd frontend && npm start",
+    "server": "nodemon backend/server.js",
+    "build": "cd frontend && npm run build",
+    "test": "jest --coverage --ci --testResultsProcessor=jest-junit",
+    "test:watch": "jest --watch",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": ["task-manager", "productivity", "agile"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
+    "supertest": "^6.3.3",
+    "nodemon": "^2.0.22",
+    "eslint": "^8.40.0",
+    "prettier": "^2.8.8"
+  },
+  "jest-junit": {
+    "outputDirectory": "test-results",
+    "outputName": "junit.xml",
+    "ancestorSeparator": " › ",
+    "uniqueOutputName": "false",
+    "suiteNameTemplate": "{filepath}",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}"
+  }
+}
