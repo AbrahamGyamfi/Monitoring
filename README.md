@@ -142,7 +142,7 @@ terraform/
 
 ### Live Metrics Dashboard
 
-![Grafana Dashboard](./screenshots/grafana-dashboard-application.png)
+Screenshots/Grafana-dashboard.png
 *Real-time application metrics: Request rate, error rate, latency, and task count*
 
 ### Infrastructure Monitoring
