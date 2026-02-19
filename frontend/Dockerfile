@@ -10,8 +10,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with cache
-RUN npm ci --no-audit --no-fund
+# Install dependencies
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY public/ ./public/

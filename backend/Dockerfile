@@ -17,8 +17,8 @@ RUN apk add --no-cache wget && \
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with cache mount
-RUN npm ci --production --no-audit --no-fund
+# Install dependencies
+RUN npm install --production
 
 # Copy backend source and set ownership
 COPY --chown=nodejs:nodejs server.js ./
