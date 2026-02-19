@@ -434,36 +434,5 @@ aws ec2 describe-instances --instance-ids INSTANCE_ID \
 - **Disk Usage**: 25% (8GB volume)
 - **Network**: <1 Mbps
 
-## Documentation
 
-- **[Project Report](PROJECT_REPORT.md)** - Comprehensive 2-page implementation report
-- **[Submission Checklist](SUBMISSION_CHECKLIST.md)** - Requirements verification
-- **[Verification Script](verify-monitoring.sh)** - Automated testing (40+ checks)
-- **[Alert Trigger Script](trigger-alerts.sh)** - Alert demonstration tool
 
-## Contributing
-
-This is an educational project demonstrating DevOps best practices. Feel free to fork and adapt for your learning purposes.
-
-## License
-
-MIT License - Educational Project
-
-## Author
-
-**Abraham Gyamfi**
-- Email: [Your Email]
-- LinkedIn: [Your LinkedIn]
-- GitHub: [@yourusername](https://github.com/yourusername)
-
----
-
-<div align="center">
-
-### If you found this project helpful, please consider giving it a star!
-
-**Version**: 2.0.0 | **Last Updated**: February 2026
-
-[Back to Top](#taskflow---enterprise-observability--security-stack)
-
-</div>
