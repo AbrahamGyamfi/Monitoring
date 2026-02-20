@@ -140,19 +140,14 @@ terraform/
 
 ## Observability Stack
 
-### Live Metrics Dashboard
-
-Screenshots/Grafana-dashboard.png
-*Real-time application metrics: Request rate, error rate, latency, and task count*
-
 ### Infrastructure Monitoring
 
-![Infrastructure Dashboard](./screenshots/grafana-dashboard-infrastructure.png)
+![Infrastructure Dashboard](Screenshots/Grafana_dashboard.png)
 *System metrics: CPU, memory, disk I/O, and network utilization*
 
 ### Metrics Exposed
 
-![Metrics Endpoint](./screenshots/metrics-endpoint.png)
+![Metrics Endpoint](Screenshots/metrics_endpoint.png)
 *Prometheus-format metrics exposed at `/metrics` endpoint*
 
 The backend exposes the following metrics:
@@ -165,10 +160,6 @@ The backend exposes the following metrics:
 | `http_error_rate_percent` | Gauge | Real-time error rate percentage |
 | `tasks_total` | Gauge | Total tasks in the system |
 
-### Prometheus Scrape Targets
-
-![Prometheus Targets](./screenshots/prometheus-targets.png)
-*All scrape targets showing healthy status*
 
 | Target | Endpoint | Status | Scrape Interval |
 |--------|----------|--------|----------------|
@@ -178,7 +169,7 @@ The backend exposes the following metrics:
 
 ### Alerts Configured
 
-![Alert Rules](./screenshots/prometheus-alerts.png)
+![Alert Rules](./monitoring/config/alert_rules.yml)
 *Configured alert rules in Prometheus*
 
 | Alert | Condition | Duration | Severity |
@@ -208,7 +199,7 @@ node_memory_MemAvailable_bytes
 
 ### CloudWatch Logs
 
-![CloudWatch Logs](./screenshots/cloudwatch-logs.png)
+![CloudWatch Logs](/Screenshots/Cloudwatch-logs.png)
 *Docker container logs streaming to CloudWatch*
 
 - **Log Group**: `/aws/taskflow/docker`
@@ -218,7 +209,7 @@ node_memory_MemAvailable_bytes
 
 ### CloudTrail
 
-![CloudTrail Events](./screenshots/cloudtrail-events.png)
+![CloudTrail Events](Screenshots/Cloudtrail_events.png)
 *AWS API audit trail showing recent events*
 
 - **Trail Name**: `taskflow-trail`
@@ -230,7 +221,7 @@ node_memory_MemAvailable_bytes
 
 ### GuardDuty
 
-![GuardDuty Dashboard](./screenshots/guardduty-dashboard.png)
+![GuardDuty Dashboard](/Screenshots/GuardDutyFinding.png)
 *GuardDuty threat detection enabled*
 
 - **Detector ID**: `8eccab93586c4b21dc5166f92a396f54`
@@ -240,7 +231,7 @@ node_memory_MemAvailable_bytes
 
 ## CI/CD Pipeline
 
-![Jenkins Pipeline](./screenshots/jenkins-pipeline.png)
+![Jenkins Pipeline](/Screenshots/pipeline-success.png)
 *Jenkins CI/CD pipeline with 8 automated stages*
 
 ### Jenkins Pipeline Stages
@@ -262,25 +253,6 @@ docker run --rm -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install && npm 
 # Frontend (8 tests)
 docker run --rm -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install --legacy-peer-deps && CI=true npm test'
 ```
-
-## Live Deployment
-
-### Access URLs
-
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **Application** | http://3.253.102.55 | - |
-| **Grafana** | http://108.131.142.189:3000 | admin/admin |
-| **Prometheus** | http://108.131.142.189:9090 | - |
-| **Metrics API** | http://3.253.102.55:5000/metrics | - |
-| **Jenkins** | http://54.155.244.183:8080 | See below |
-
-### Application Screenshots
-
-![TaskFlow Application](./screenshots/application-ui.png)
-*TaskFlow task management interface*
-
-## API Endpoints
 
 ### Application
 - `POST /api/tasks` - Create task
@@ -434,5 +406,36 @@ aws ec2 describe-instances --instance-ids INSTANCE_ID \
 - **Disk Usage**: 25% (8GB volume)
 - **Network**: <1 Mbps
 
+## Documentation
 
+- **[Project Report](PROJECT_REPORT.md)** - Comprehensive 2-page implementation report
+- **[Submission Checklist](SUBMISSION_CHECKLIST.md)** - Requirements verification
+- **[Verification Script](verify-monitoring.sh)** - Automated testing (40+ checks)
+- **[Alert Trigger Script](trigger-alerts.sh)** - Alert demonstration tool
 
+## Contributing
+
+This is an educational project demonstrating DevOps best practices. Feel free to fork and adapt for your learning purposes.
+
+## License
+
+MIT License - Educational Project
+
+## Author
+
+**Abraham Gyamfi**
+- Email: [Your Email]
+- LinkedIn: [Your LinkedIn]
+- GitHub: [@yourusername](https://github.com/yourusername)
+
+---
+
+<div align="center">
+
+### If you found this project helpful, please consider giving it a star!
+
+**Version**: 2.0.0 | **Last Updated**: February 2026
+
+[Back to Top](#taskflow---enterprise-observability--security-stack)
+
+</div>
