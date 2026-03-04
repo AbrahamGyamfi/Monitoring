@@ -128,6 +128,35 @@ resource "aws_iam_role_policy" "ec2_s3_policy" {
   })
 }
 
+resource "aws_iam_role_policy" "ec2_ecr_policy" {
+  name = "taskflow-ec2-ecr-policy"
+  role = aws_iam_role.ec2_codedeploy_role.id
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:DescribeRepositories",
+          "ecr:ListImages"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy" "ec2_jenkins_policy" {
   name = "taskflow-ec2-jenkins-policy"
   role = aws_iam_role.ec2_codedeploy_role.id
