@@ -13,19 +13,34 @@ output "jenkins_url" {
   value       = "http://${module.compute.jenkins_public_ip}:8080"
 }
 
-output "app_instance_id" {
-  description = "Application server instance ID"
-  value       = module.compute.app_instance_id
+output "app_blue_instance_id" {
+  description = "Application Blue server instance ID"
+  value       = module.compute.app_blue_instance_id
 }
 
-output "app_public_ip" {
-  description = "Application server public IP"
-  value       = module.compute.app_public_ip
+output "app_blue_public_ip" {
+  description = "Application Blue server public IP"
+  value       = module.compute.app_blue_public_ip
+}
+
+output "app_green_instance_id" {
+  description = "Application Green server instance ID"
+  value       = module.compute.app_green_instance_id
+}
+
+output "app_green_public_ip" {
+  description = "Application Green server public IP"
+  value       = module.compute.app_green_public_ip
+}
+
+output "load_balancer_dns" {
+  description = "Load Balancer DNS name"
+  value       = module.loadbalancer.load_balancer_dns
 }
 
 output "app_url" {
-  description = "Application URL"
-  value       = "http://${module.compute.app_public_ip}"
+  description = "Application URL via Load Balancer"
+  value       = "http://${module.loadbalancer.load_balancer_dns}"
 }
 
 output "security_group_id" {
@@ -35,12 +50,17 @@ output "security_group_id" {
 
 output "ssh_jenkins" {
   description = "SSH command for Jenkins server"
-  value       = "ssh -i ${var.key_name}.pem ec2-user@${module.compute.jenkins_public_ip}"
+  value       = "ssh -i ~/.ssh/id_rsa ec2-user@${module.compute.jenkins_public_ip}"
 }
 
-output "ssh_app" {
-  description = "SSH command for application server"
-  value       = "ssh -i ${var.key_name}.pem ec2-user@${module.compute.app_public_ip}"
+output "ssh_app_blue" {
+  description = "SSH command for Blue application server"
+  value       = "ssh -i ~/.ssh/id_rsa ec2-user@${module.compute.app_blue_public_ip}"
+}
+
+output "ssh_app_green" {
+  description = "SSH command for Green application server"
+  value       = "ssh -i ~/.ssh/id_rsa ec2-user@${module.compute.app_green_public_ip}"
 }
 
 output "prometheus_url" {

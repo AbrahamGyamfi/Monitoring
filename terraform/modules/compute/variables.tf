@@ -17,3 +17,9 @@ variable "security_group_name" {
   description = "Security group name"
   type        = string
 }
+
+variable "codedeploy_instance_profile" {
+  description = "IAM instance profile for CodeDeploy"
+  type        = string
+  default     = ""
+}

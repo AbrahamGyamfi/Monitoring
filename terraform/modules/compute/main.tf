@@ -14,11 +14,12 @@ data "aws_ami" "amazon_linux_2" {
 }
 
 resource "aws_instance" "jenkins" {
-  ami             = data.aws_ami.amazon_linux_2.id
-  instance_type   = var.jenkins_instance_type
-  key_name        = var.key_name
-  security_groups = [var.security_group_name]
-  user_data       = file("${path.root}/../userdata/jenkins-userdata.sh")
+  ami                  = data.aws_ami.amazon_linux_2.id
+  instance_type        = var.jenkins_instance_type
+  key_name             = var.key_name
+  security_groups      = [var.security_group_name]
+  iam_instance_profile = var.codedeploy_instance_profile
+  user_data            = file("${path.root}/../userdata/jenkins-userdata.sh")
 
   tags = {
     Name        = "TaskFlow-Jenkins-Server"
@@ -27,16 +28,34 @@ resource "aws_instance" "jenkins" {
   }
 }
 
-resource "aws_instance" "app" {
-  ami             = data.aws_ami.amazon_linux_2.id
-  instance_type   = var.app_instance_type
-  key_name        = var.key_name
-  security_groups = [var.security_group_name]
-  user_data       = file("${path.root}/../userdata/app-userdata.sh")
+resource "aws_instance" "app_blue" {
+  ami                  = data.aws_ami.amazon_linux_2.id
+  instance_type        = var.app_instance_type
+  key_name             = var.key_name
+  security_groups      = [var.security_group_name]
+  iam_instance_profile = var.codedeploy_instance_profile
+  user_data            = file("${path.root}/../userdata/app-userdata.sh")
 
   tags = {
-    Name        = "TaskFlow-App-Server"
+    Name        = "taskflow-app"
     Project     = "TaskFlow"
     Environment = "Production"
+    Role        = "Blue"
+  }
+}
+
+resource "aws_instance" "app_green" {
+  ami                  = data.aws_ami.amazon_linux_2.id
+  instance_type        = var.app_instance_type
+  key_name             = var.key_name
+  security_groups      = [var.security_group_name]
+  iam_instance_profile = var.codedeploy_instance_profile
+  user_data            = file("${path.root}/../userdata/app-userdata.sh")
+
+  tags = {
+    Name        = "taskflow-app"
+    Project     = "TaskFlow"
+    Environment = "Production"
+    Role        = "Green"
   }
 }

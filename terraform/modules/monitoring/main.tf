@@ -16,14 +16,18 @@ resource "aws_instance" "monitoring" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "docker_logs" {
-  name              = var.cloudwatch_log_group
-  retention_in_days = 7
+# CloudWatch log group already exists - managed externally
+# To import: terraform import module.monitoring.aws_cloudwatch_log_group.docker_logs /aws/taskflow/docker
 
-  tags = {
-    Project = "TaskFlow"
-  }
-}
+# resource "aws_cloudwatch_log_group" "docker_logs" {
+#   name              = var.cloudwatch_log_group
+#   retention_in_days = 7
+#   skip_destroy      = true
+#
+#   tags = {
+#     Project = "TaskFlow"
+#   }
+# }
 
 resource "null_resource" "deploy_monitoring" {
   depends_on = [aws_instance.monitoring]

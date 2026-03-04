@@ -8,14 +8,24 @@ output "jenkins_public_ip" {
   value       = aws_instance.jenkins.public_ip
 }
 
-output "app_instance_id" {
-  description = "App instance ID"
-  value       = aws_instance.app.id
+output "app_blue_instance_id" {
+  description = "App Blue instance ID"
+  value       = aws_instance.app_blue.id
 }
 
-output "app_public_ip" {
-  description = "App public IP"
-  value       = aws_instance.app.public_ip
+output "app_blue_public_ip" {
+  description = "App Blue public IP"
+  value       = aws_instance.app_blue.public_ip
+}
+
+output "app_green_instance_id" {
+  description = "App Green instance ID"
+  value       = aws_instance.app_green.id
+}
+
+output "app_green_public_ip" {
+  description = "App Green public IP"
+  value       = aws_instance.app_green.public_ip
 }
 
 output "ami_id" {

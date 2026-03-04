@@ -27,17 +27,18 @@ module "networking" {
 module "compute" {
   source = "./modules/compute"
 
-  jenkins_instance_type = var.jenkins_instance_type
-  app_instance_type     = var.app_instance_type
-  key_name              = module.networking.key_name
-  security_group_name   = module.networking.security_group_name
+  jenkins_instance_type        = var.jenkins_instance_type
+  app_instance_type            = var.app_instance_type
+  key_name                     = module.networking.key_name
+  security_group_name          = module.networking.security_group_name
+  codedeploy_instance_profile  = module.codedeploy.ec2_instance_profile_name
 }
 
 module "deployment" {
   source = "./modules/deployment"
 
-  app_instance_id  = module.compute.app_instance_id
-  app_public_ip    = module.compute.app_public_ip
+  app_instance_id  = module.compute.app_blue_instance_id
+  app_public_ip    = module.compute.app_blue_public_ip
   private_key_path = var.private_key_path
   docker_registry  = var.docker_registry
   image_tag        = var.image_tag
@@ -57,6 +58,20 @@ module "monitoring" {
   security_group_name  = module.networking.security_group_name
   iam_instance_profile = module.security.iam_instance_profile
   aws_region           = var.aws_region
-  app_public_ip        = module.compute.app_public_ip
+  app_public_ip        = module.compute.app_blue_public_ip
   private_key_path     = var.private_key_path
+}
+
+module "codedeploy" {
+  source = "./modules/codedeploy"
+}
+
+module "loadbalancer" {
+  source = "./modules/loadbalancer"
+
+  security_group_id      = module.networking.security_group_id
+  subnet_ids             = module.networking.subnet_ids
+  vpc_id                 = module.networking.vpc_id
+  app_blue_instance_id   = module.compute.app_blue_instance_id
+  app_green_instance_id  = module.compute.app_green_instance_id
 }

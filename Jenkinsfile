@@ -247,54 +247,58 @@ pipeline {
         
         stage('Deploy to EC2') {
             steps {
-                sshagent(credentials: ["${EC2_CREDENTIALS_ID}"]) {
-                    script {
-                        echo '🚀 Deploying to EC2...'
-                        
-                        // Create deployment directory
+                script {
+                    echo '🚀 Deploying via CodeDeploy...'
+                    
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDENTIALS_ID}"]]){
+                        // Create deployment metadata file
                         sh """
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                                mkdir -p ~/taskflow
-                            '
+                            echo 'IMAGE_TAG=${IMAGE_TAG}' > .deployment_metadata
+                            echo 'ECR_REGISTRY=${ECR_REGISTRY}' >> .deployment_metadata
                         """
                         
-                        // Copy docker-compose file
+                        // Create CodeDeploy deployment
                         sh """
-                            scp -o StrictHostKeyChecking=no \
-                                docker-compose.prod.yml \
-                                ${EC2_USER}@${EC2_HOST}:~/taskflow/docker-compose.yml
+                            aws deploy create-deployment \
+                                --region ${AWS_REGION} \
+                                --application-name taskflow-app \
+                                --deployment-group-name taskflow-blue-green \
+                                --deployment-config-name CodeDeployDefault.OneAtATime \
+                                --github-location repository=<GITHUB_OWNER>/<GITHUB_REPO>,commitSha=${GIT_COMMIT},branch=main \
+                                --description "Build #${BUILD_NUMBER} - ${GIT_COMMIT_MSG}" \
+                                --output json > deployment.json
                         """
                         
-                        // Deploy application
+                        // Extract deployment ID
+                        def deploymentId = sh(
+                            script: 'cat deployment.json | grep -o "\\"deploymentId\\":\\"[^\\"]*" | cut -d\'"\' -f4',
+                            returnStdout: true
+                        ).trim()
+                        
+                        echo "Deployment ID: ${deploymentId}"
+                        
+                        // Wait for deployment to complete
                         sh """
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                                cd ~/taskflow
+                            MAX_WAIT=600
+                            WAIT_COUNT=0
+                            while [ \$WAIT_COUNT -lt \$MAX_WAIT ]; do
+                                STATUS=\$(aws deploy get-deployment --region ${AWS_REGION} --deployment-id ${deploymentId} --query 'deploymentInfo.status' --output text)
+                                echo "Deployment Status: \$STATUS"
                                 
-                                # Login to ECR
-                                aws ecr get-login-password --region ${AWS_REGION} | \
-                                docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                                if [ "\$STATUS" = "Succeeded" ]; then
+                                    echo "✅ Deployment succeeded!"
+                                    exit 0
+                                elif [ "\$STATUS" = "Failed" ] || [ "\$STATUS" = "Stopped" ]; then
+                                    echo "❌ Deployment failed with status: \$STATUS"
+                                    exit 1
+                                fi
                                 
-                                # Pull latest images
-                                docker pull ${BACKEND_IMAGE}:${IMAGE_TAG}
-                                docker pull ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                                
-                                # Stop existing containers
-                                docker-compose down || true
-                                
-                                # Start new containers
-                                REGISTRY_URL=${ECR_REGISTRY} IMAGE_TAG=${IMAGE_TAG} docker-compose up -d
-                                
-                                # Wait for services to be healthy
                                 sleep 10
-                                
-                                # Check container status
-                                docker-compose ps
-                                
-                                # Verify application is running
-                                curl -f http://localhost:5000/health || exit 1
-                                
-                                echo "✅ Deployment successful!"
-                            '
+                                WAIT_COUNT=\$((WAIT_COUNT + 10))
+                            done
+                            
+                            echo "❌ Deployment timeout"
+                            exit 1
                         """
                     }
                 }
