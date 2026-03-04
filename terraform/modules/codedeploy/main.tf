@@ -1,5 +1,6 @@
 resource "aws_codedeploy_app" "taskflow" {
-  name = "taskflow-app"
+  name             = "taskflow-app"
+  compute_platform = "Server"
   
   tags = {
     Name = "taskflow-codedeploy-app"
@@ -12,15 +13,10 @@ resource "aws_codedeploy_deployment_group" "taskflow" {
   service_role_arn       = aws_iam_role.codedeploy_role.arn
   deployment_config_name = "CodeDeployDefault.OneAtATime"
   
+  # In-place deployment for EC2 instances (Blue/Green requires ASG)
   deployment_style {
-    deployment_type   = "BLUE_GREEN"
-    deployment_option = "WITH_TRAFFIC_CONTROL"
-  }
-  
-  load_balancer_info {
-    target_group_info {
-      name = var.target_group_name
-    }
+    deployment_type   = "IN_PLACE"
+    deployment_option = "WITHOUT_TRAFFIC_CONTROL"
   }
   
   auto_rollback_configuration {
