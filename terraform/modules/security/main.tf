@@ -128,6 +128,26 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_logs" {
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
+# EC2 read permissions for Prometheus service discovery
+resource "aws_iam_role_policy" "prometheus_ec2_discovery" {
+  name = "prometheus-ec2-discovery"
+  role = aws_iam_role.cloudwatch_logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeTags"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_instance_profile" "cloudwatch_logs" {
   name = var.cloudwatch_role_name
   role = aws_iam_role.cloudwatch_logs.name

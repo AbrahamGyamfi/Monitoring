@@ -15,11 +15,41 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+  # Auto-discover EC2 instances with tag Name=taskflow-app
   - job_name: 'taskflow-backend'
-    static_configs:
-      - targets: ['APP_SERVER_IP:5000']
-    metrics_path: '/metrics'
+    ec2_sd_configs:
+      - region: eu-west-1
+        port: 5000
+        filters:
+          - name: tag:Name
+            values: ['taskflow-app']
+          - name: instance-state-name
+            values: ['running']
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Role]
+        target_label: role
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+      - source_labels: [__meta_ec2_public_ip]
+        replacement: '${1}:5000'
+        target_label: __address__
 
+  # Node exporter on app instances
   - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['APP_SERVER_IP:9100']
+    ec2_sd_configs:
+      - region: eu-west-1
+        port: 9100
+        filters:
+          - name: tag:Name
+            values: ['taskflow-app']
+          - name: instance-state-name
+            values: ['running']
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Role]
+        target_label: role
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+      - source_labels: [__meta_ec2_public_ip]
+        replacement: '${1}:9100'
+        target_label: __address__
+
