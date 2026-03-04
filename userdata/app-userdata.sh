@@ -23,9 +23,13 @@ systemctl enable docker
 # Install additional tools
 yum install -y git curl wget ruby
 
+# Get AWS region from instance metadata
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
+
 # Install CodeDeploy Agent
-cd /home/ec2-user
-wget https://aws-codedeploy-${AWS_REGION}.s3.${AWS_REGION}.amazonaws.com/latest/install
+cd /tmp
+wget https://aws-codedeploy-${REGION}.s3.${REGION}.amazonaws.com/latest/install
 chmod +x ./install
 ./install auto
 systemctl start codedeploy-agent
