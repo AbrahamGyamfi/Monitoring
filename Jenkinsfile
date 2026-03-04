@@ -248,7 +248,7 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
-                    echo '🚀 Deploying via CodeDeploy...'
+                    echo ' Deploying via CodeDeploy...'
                     
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${AWS_CREDENTIALS_ID}"]]){
                         // Create deployment metadata file
@@ -257,49 +257,68 @@ pipeline {
                             echo 'ECR_REGISTRY=${ECR_REGISTRY}' >> .deployment_metadata
                         """
                         
-                        // Create CodeDeploy deployment
-                        sh """
-                            aws deploy create-deployment \
-                                --region ${AWS_REGION} \
+                        // Create CodeDeploy deployment and wait for completion
+                        sh '''
+                            set -e
+                            
+                            # Create deployment
+                            echo "Creating CodeDeploy deployment..."
+                            DEPLOYMENT_OUTPUT=$(aws deploy create-deployment \
+                                --region ''' + AWS_REGION + ''' \
                                 --application-name taskflow-app \
                                 --deployment-group-name taskflow-blue-green \
                                 --deployment-config-name CodeDeployDefault.OneAtATime \
-                                --github-location repository=AbrahamGyamfi/Monitoring,commitId=${GIT_COMMIT} \
-                                --description "Build #${BUILD_NUMBER} - ${GIT_COMMIT_MSG}" \
-                                --output json > deployment.json
-                        """
-                        
-                        // Extract deployment ID
-                        def deploymentId = sh(
-                            script: 'cat deployment.json | grep -o "\\"deploymentId\\":\\"[^\\"]*" | cut -d\'"\' -f4',
-                            returnStdout: true
-                        ).trim()
-                        
-                        echo "Deployment ID: ${deploymentId}"
-                        
-                        // Wait for deployment to complete
-                        sh """
+                                --github-location repository=AbrahamGyamfi/Monitoring,commitId=''' + env.GIT_COMMIT + ''' \
+                                --description "Build #''' + BUILD_NUMBER + '''" \
+                                --output json 2>&1) || {
+                                    echo "ERROR: Failed to create deployment"
+                                    echo "$DEPLOYMENT_OUTPUT"
+                                    exit 1
+                                }
+                            
+                            echo "Deployment response: $DEPLOYMENT_OUTPUT"
+                            
+                            # Extract deployment ID using sed (more reliable)
+                            DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | sed -n 's/.*"deploymentId"[[:space:]]*:[[:space:]]*"\\([^"]*\\)".*/\\1/p')
+                            
+                            if [ -z "$DEPLOYMENT_ID" ]; then
+                                echo "ERROR: Could not extract deployment ID from response"
+                                exit 1
+                            fi
+                            
+                            echo "Deployment ID: $DEPLOYMENT_ID"
+                            
+                            # Wait for deployment to complete
                             MAX_WAIT=600
                             WAIT_COUNT=0
-                            while [ \$WAIT_COUNT -lt \$MAX_WAIT ]; do
-                                STATUS=\$(aws deploy get-deployment --region ${AWS_REGION} --deployment-id ${deploymentId} --query 'deploymentInfo.status' --output text)
-                                echo "Deployment Status: \$STATUS"
+                            while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+                                STATUS=$(aws deploy get-deployment \
+                                    --region ''' + AWS_REGION + ''' \
+                                    --deployment-id "$DEPLOYMENT_ID" \
+                                    --query 'deploymentInfo.status' \
+                                    --output text)
+                                echo "Deployment Status: $STATUS"
                                 
-                                if [ "\$STATUS" = "Succeeded" ]; then
+                                if [ "$STATUS" = "Succeeded" ]; then
                                     echo "✅ Deployment succeeded!"
                                     exit 0
-                                elif [ "\$STATUS" = "Failed" ] || [ "\$STATUS" = "Stopped" ]; then
-                                    echo "❌ Deployment failed with status: \$STATUS"
+                                elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Stopped" ]; then
+                                    echo "❌ Deployment failed with status: $STATUS"
+                                    aws deploy get-deployment \
+                                        --region ''' + AWS_REGION + ''' \
+                                        --deployment-id "$DEPLOYMENT_ID" \
+                                        --query 'deploymentInfo.errorInformation' \
+                                        --output json
                                     exit 1
                                 fi
                                 
                                 sleep 10
-                                WAIT_COUNT=\$((WAIT_COUNT + 10))
+                                WAIT_COUNT=$((WAIT_COUNT + 10))
                             done
                             
-                            echo "❌ Deployment timeout"
+                            echo "❌ Deployment timeout after ${MAX_WAIT}s"
                             exit 1
-                        """
+                        '''
                     }
                 }
             }
