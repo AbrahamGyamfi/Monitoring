@@ -6,6 +6,7 @@
 
 [![Terraform](https://img.shields.io/badge/IaC-Terraform-7B42BC?style=for-the-badge&logo=terraform)](https://www.terraform.io/)
 [![Jenkins](https://img.shields.io/badge/CI%2FCD-Jenkins-D24939?style=for-the-badge&logo=jenkins)](https://jenkins.io/)
+[![AWS CodeDeploy](https://img.shields.io/badge/Deploy-CodeDeploy-FF9900?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/codedeploy/)
 [![Docker](https://img.shields.io/badge/Container-Docker-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![AWS](https://img.shields.io/badge/Cloud-AWS-FF9900?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/)
 [![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus-E6522C?style=for-the-badge&logo=prometheus)](https://prometheus.io/)
@@ -28,18 +29,20 @@ TaskFlow is an **enterprise-grade task management application** showcasing produ
 <td width="50%">
 
 **Infrastructure & Automation**
-- Modular Terraform (5 modules)
+- Modular Terraform (7 modules)
 - Jenkins CI/CD (8-stage pipeline)
+- AWS CodeDeploy (rolling deployments)
 - Multi-stage Docker builds
 - AWS ECR integration
-- Automated testing & deployment
+- Application Load Balancer
 
 </td>
 <td width="50%">
 
 **Observability & Security**
-- Prometheus metrics collection
+- Prometheus metrics (EC2 auto-discovery)
 - Grafana dashboards (16 panels)
+- Node Exporter system metrics
 - CloudWatch Logs integration
 - CloudTrail audit logging
 - GuardDuty threat detection
@@ -51,21 +54,77 @@ TaskFlow is an **enterprise-grade task management application** showcasing produ
 ## Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Jenkins Server │     │   App Server     │     │ Monitoring      │
-│  - CI/CD        │────▶│  - TaskFlow App  │◀────│  - Prometheus   │
-│  - Pipeline     │     │  - Node Exporter │     │  - Grafana      │
-└─────────────────┘     └──────────────────┘     │  - Alerts       │
-                               │                  └─────────────────┘
-                               ▼
-                        ┌─────────────────┐
-                        │  AWS Services   │
-                        │  - CloudWatch   │
-                        │  - CloudTrail   │
-                        │  - GuardDuty    │
-                        │  - ECR          │
-                        └─────────────────┘
+┌─────────────────┐     ┌───────────────────────────────────────────┐
+│     GitHub      │     │              AWS Cloud                    │
+│  (Source Code)  │     │                                           │
+└────────┬────────┘     │  ┌─────────────┐      ┌────────────────┐  │
+         │              │  │   Jenkins   │      │   CodeDeploy   │  │
+         │ Webhook      │  │  (CI/CD)    │─────▶│  (Deployment)  │  │
+         │              │  └──────┬──────┘      └───────┬────────┘  │
+         │              │         │                     │           │
+         ▼              │         │ Push                │ Deploy    │
+┌─────────────────┐     │         ▼                     ▼           │
+│  Jenkins Build  │     │  ┌─────────────┐      ┌─────────────────┐ │
+│  - Test         │     │  │     ECR     │      │  App Servers    │ │
+│  - Dockerize    │────▶│  │  (Images)   │◀─────│  ┌─────┐ ┌─────┐│ │
+│  - Push to ECR  │     │  └─────────────┘      │  │Blue │ │Green││ │
+└─────────────────┘     │                       │  └─────┘ └─────┘│ │
+                        │                       └────────┬────────┘ │
+                        │                                │          │
+                        │  ┌─────────────────┐          │          │
+                        │  │   Monitoring    │◀─────────┘          │
+                        │  │  - Prometheus   │   Scrape metrics    │
+                        │  │  - Grafana      │                     │
+                        │  └─────────────────┘                     │
+                        │                                          │
+                        │  ┌──────────────────────────────────┐    │
+                        │  │         AWS Services             │    │
+                        │  │  ALB • CloudWatch • GuardDuty    │    │
+                        │  └──────────────────────────────────┘    │
+                        └──────────────────────────────────────────┘
 ```
+
+## CI/CD Pipeline with AWS CodeDeploy
+
+### Deployment Flow
+
+The application uses **AWS CodeDeploy** for automated deployments triggered by Jenkins:
+
+```
+Jenkins Pipeline Stages:
+┌──────────┬─────────────┬───────────┬──────────┬─────────────┬──────────────┐
+│ Checkout │ Build Docker│ Run Tests │ Push ECR │ CodeDeploy  │ Health Check │
+│          │   Images    │           │          │  Trigger    │              │
+└──────────┴─────────────┴───────────┴──────────┴─────────────┴──────────────┘
+```
+
+### CodeDeploy Configuration
+
+| Setting | Value |
+|---------|-------|
+| **Application** | `taskflow-app` |
+| **Deployment Group** | `taskflow-blue-green` |
+| **Deployment Type** | Rolling (IN_PLACE) |
+| **Deployment Config** | OneAtATime |
+| **Auto Rollback** | On failure |
+
+### Deployment Lifecycle Hooks
+
+The deployment follows these stages defined in `appspec.yml`:
+
+| Hook | Script | Purpose |
+|------|--------|---------|
+| `BeforeInstall` | `scripts/before_install.sh` | Stop existing containers |
+| `AfterInstall` | `scripts/after_install.sh` | Pull Docker images from ECR |
+| `ApplicationStart` | `scripts/application_start.sh` | Start containers with docker-compose |
+| `ValidateService` | `scripts/validate_service.sh` | Health check verification |
+
+### Service Discovery
+
+Prometheus uses **EC2 Service Discovery** to automatically find targets:
+- Instances tagged with `Name=taskflow-app` are auto-discovered
+- No hardcoded IPs in configuration
+- Scales automatically when instances change
 
 ## Technology Stack
 
@@ -124,19 +183,24 @@ terraform/
 ├── outputs.tf                 # Output values
 └── modules/
     ├── networking/            # Security groups, SSH keys
-    ├── compute/               # EC2 instances
+    ├── compute/               # EC2 instances (Blue/Green)
+    ├── codedeploy/            # CodeDeploy app & deployment group
+    ├── loadbalancer/          # ALB & target groups
     ├── deployment/            # App deployment provisioner
     ├── monitoring/            # Prometheus + Grafana
     └── security/              # CloudTrail, GuardDuty, IAM
 ```
 
 ### Resources Provisioned
-- 3 EC2 instances (Jenkins, App, Monitoring)
+- 4 EC2 instances (Jenkins, App Blue, App Green, Monitoring)
+- Application Load Balancer with target groups
+- CodeDeploy application and deployment group
 - Security group with required ports
-- IAM roles for CloudWatch
+- IAM roles for CodeDeploy and EC2
+- ECR repositories for Docker images
 - S3 bucket for CloudTrail logs (encrypted, 90-day lifecycle)
 - CloudWatch log groups
-- Imported existing CloudTrail and GuardDuty
+- GuardDuty threat detection
 
 ## Observability Stack
 
