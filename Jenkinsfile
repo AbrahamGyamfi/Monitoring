@@ -264,7 +264,7 @@ pipeline {
                                 --application-name taskflow-app \
                                 --deployment-group-name taskflow-blue-green \
                                 --deployment-config-name CodeDeployDefault.OneAtATime \
-                                --github-location repository=<GITHUB_OWNER>/<GITHUB_REPO>,commitSha=${GIT_COMMIT},branch=main \
+                                --github-location repository=AbrahamGyamfi/Monitoring,commitId=${GIT_COMMIT} \
                                 --description "Build #${BUILD_NUMBER} - ${GIT_COMMIT_MSG}" \
                                 --output json > deployment.json
                         """
